@@ -87,7 +87,6 @@ else()
 	message(STATUS "PPC library not found")
 endif()
 
-
 # look for lp_solve5
 set(LP_SOLVE5_PATH "${CMAKE_SOURCE_DIR}/../lp_solve5" CACHE PATH "path to lp_solve5 path")
 if(EXISTS "${LP_SOLVE5_PATH}")
@@ -100,6 +99,8 @@ if(EXISTS "${LP_SOLVE5_PATH}")
 	else()
 		find_library(LP_SOLVE5_LIB lpsolve55 PATHS "${LP_SOLVE5_PATH}/lpsolve55" NO_DEFAULT_PATH)
 	endif()
+else()
+  find_library(LP_SOLVE5_LIB lpsolve55 SUFFICES "lpsolve55")
 endif()
 if(LP_SOLVE5_LIB)
 	message(STATUS "lp_solve5 library found at ${LP_SOLVE5_LIB}")

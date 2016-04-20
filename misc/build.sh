@@ -10,12 +10,6 @@ INSTALL_DIR="$ROOT_DIR/local"
 
 PATMOS_SOURCE_PATH="$ROOT_DIR/patmos"
 
-# Path to lp_solve
-LPSOLVE_BIN=/usr/bin/lp_solve
-LPSOLVE_INC=/usr/include/lpsolve
-LPSOLVE_LIB=/usr/lib64/liblpsolve55.so.0
-
-
 ### Internal build script start
 # Options from command line
 DO_RECONFIGURE=false
