@@ -13,6 +13,7 @@ PATMOS_SOURCE_PATH="$ROOT_DIR/patmos"
 ### Internal build script start
 # Options from command line
 DO_RECONFIGURE=false
+DO_CLEAN=false
 DRYRUN=false
 VERBOSE=false
 ALLTARGETS="deps otawa patmos ppc2"
@@ -103,12 +104,13 @@ do_install() {
 	run make install
 }
 
-while getopts ":dvhi:r" opt; do
+while getopts ":dvhi:rc" opt; do
   case $opt in
     d) DRYRUN=true; VERBOSE=true ;;
     h) usage; exit 0 ;;
     i) INSTALL_DIR="$(abspath $OPTARG)" ;;
     r) DO_RECONFIGURE=true ;;
+    c) DO_CLEAN=true ;;
     v) VERBOSE=true ;;
     :)
       echo "Option -$OPTARG requires an argument." >&2
@@ -135,6 +137,9 @@ find_bins ocamllex ocamlyacc ocamlc
 # build gliss2
 if should_build_target deps; then
 	run pushd gliss2 ">/dev/null"
+  if [ $DO_CLEAN == true ] ; then
+    run make clean
+  fi
 	run make
 	run popd ">/dev/null"
 fi
@@ -143,6 +148,9 @@ fi
 if should_build_target ppc2; then
 	for arch in ppc2; do
 		run pushd "$arch" ">/dev/null"
+    if [ $DO_CLEAN == true ] ; then
+      run make clean
+    fi
 		run make WITH_DYNLIB=1
 		run popd ">/dev/null"
 	done
@@ -152,11 +160,12 @@ fi
 if should_build_target deps; then
 	for tool in elm gel; do
 		run pushd "$tool" ">/dev/null"
-		if [ ! -e CMakeCache.txt -o $DO_RECONFIGURE == true ]; then
+		if [ ! -e Makefile -o $DO_RECONFIGURE == true ]; then
 			run cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR
-		else
-			echo "** $SELF: $tool already configured"
 		fi
+    if [ $DO_CLEAN == true ] ; then
+      run make clean
+    fi
 		run make
 		do_install $tool
 		run popd ">/dev/null"
@@ -166,11 +175,12 @@ fi
 # otawa itself
 if should_build_target otawa; then
 	run pushd otawa ">/dev/null"
-		if [ ! -e CMakeCache.txt -o $DO_RECONFIGURE == true ]; then
-			run cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DLP_SOLVE5=$LPSOLVE_BIN -DLP_SOLVE5_INCLUDE=$LPSOLVE_INC -DLP_SOLVE5_LIB=$LPSOLVE_LIB
-		else
-			echo "** $SELF: OTAWA already configured"
+		if [ ! -e Makefile -o $DO_RECONFIGURE == true ]; then
+			run cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR
 		fi
+    if [ $DO_CLEAN == true ] ; then
+      run make clean
+    fi
 		run make
 		do_install otawa
 	run popd ">/dev/null"
@@ -179,11 +189,17 @@ fi
 if should_build_target patmos; then
 	# patmos arch
 	run pushd "$PATMOS_SOURCE_PATH/patmos" ">/dev/null"
+  if [ $DO_CLEAN == true ] ; then
+    run make clean
+  fi
 	run make WITH_DYNLIB=1 GLISS_PREFIX=$ROOT_DIR/gliss2
 	run popd ">/dev/null"
 
 	# patmos modules
 	BUILD_PATH=$ROOT_DIR/patmos/build
+  if [ $DO_CLEAN == true ] ; then
+    run rm -rf ${BUILD_PATH}
+  fi
 	for module in otawa-patmos patmos-wcet; do
 		DIR=$BUILD_PATH/$module
 		run mkdir -p $DIR
