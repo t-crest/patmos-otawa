@@ -97,3 +97,6 @@ ppc2/ppc.nml
 ppc2/sim/
 ppc2/src/
 
+gel/autodoc/
+otawa/autodoc/
+otawa/doxygen.err
