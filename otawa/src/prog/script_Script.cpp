@@ -43,7 +43,15 @@ using namespace elm;
 
 #define DEBUG(x)	//x
 
-namespace otawa { namespace script {
+namespace otawa {
+	/**
+	* Identifier of a string property that specifies the output path for an ILP
+	* dump.
+	* @ingroup ipet
+	*/
+	Identifier<string> ILPNAME("otawa::ILPNAME", "");
+
+	namespace script {
 
 /**
  * @defgroup script Scripts
@@ -520,6 +528,7 @@ void Script::work(WorkSpace *ws) {
 
 	// execute the script
 	sys::StopWatch sw;
+	ILPNAME(*ws) = ILPNAME(props);
 	for(int i = 0; i < steps->getChildCount(); i++) {
 		xom::Node *node = steps->getChild(i);
 		switch(node->kind()) {

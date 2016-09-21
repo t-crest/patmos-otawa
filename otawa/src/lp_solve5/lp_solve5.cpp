@@ -50,7 +50,10 @@ namespace elm {
 	};
 } // elm
 
-namespace otawa { namespace lp_solve5 {
+
+namespace otawa {
+	extern Identifier<string> ILPNAME;
+	namespace lp_solve5 {
 
 // Predeclaration
 class Constraint;
@@ -551,13 +554,15 @@ bool System::solve(WorkSpace *ws) {
 		//set_int(lp, i, TRUE);
 
 	// set the type of variable
-	for(var_map_t::Iterator var(vars); var; var++)
+	for(var_map_t::Iterator var(vars); var; var++) {
 		switch(var->variable()->type()) {
 		case ilp::Var::INT:		set_int(lp, var->column(), TRUE); break;
 		case ilp::Var::BIN:		set_binary(lp, var->column(), TRUE); break;
 		case ilp::Var::FLOAT:	break;
 		default:				ASSERT(false); break;
 		}
+		set_col_name(lp, var->column(), (char*)var->variable()->name().chars());
+	}
 	
 	// Build the object function
 	ofun->fillRow(row);
@@ -589,6 +594,10 @@ bool System::solve(WorkSpace *ws) {
 		put_abortfunc(lp, test_cancellation, ws);
 
 	// Launch the resolution
+	if (!ILPNAME(ws).get().isEmpty()) {
+		Path p(ILPNAME(ws));
+		write_lp(lp, (char*)p.toString().chars());
+	}
 	int fail = ::solve(lp);
 	
 	// Record the result
