@@ -14,6 +14,7 @@ PATMOS_SOURCE_PATH="$ROOT_DIR/patmos"
 # Options from command line
 DO_RECONFIGURE=false
 DO_CLEAN=false
+MAKEJ=""
 DRYRUN=false
 VERBOSE=false
 ALLTARGETS="deps otawa patmos ppc2"
@@ -53,6 +54,7 @@ function usage() {
 
     -d		Dryrun, just show what would be executed
     -h		Show this help
+    -j <n> 	Pass -j<n> to make
     -i <dir>	Set the install dir
     -r		Rerun cmake configure
     -v		Show command that are executed
@@ -104,11 +106,12 @@ do_install() {
 	run make install
 }
 
-while getopts ":dvhi:rc" opt; do
+while getopts ":dvhi:rcj:" opt; do
   case $opt in
     d) DRYRUN=true; VERBOSE=true ;;
     h) usage; exit 0 ;;
     i) INSTALL_DIR="$(abspath $OPTARG)" ;;
+    j) MAKEJ="-j$OPTARG" ;;
     r) DO_RECONFIGURE=true ;;
     c) DO_CLEAN=true ;;
     v) VERBOSE=true ;;
@@ -140,7 +143,7 @@ if should_build_target deps; then
   if [ $DO_CLEAN == true ] ; then
     run make clean
   fi
-	run make
+	run make $MAKEJ
 	run popd ">/dev/null"
 fi
 
@@ -151,7 +154,7 @@ if should_build_target ppc2; then
     if [ $DO_CLEAN == true ] ; then
       run make clean
     fi
-		run make WITH_DYNLIB=1
+		run make $MAKEJ WITH_DYNLIB=1
 		run popd ">/dev/null"
 	done
 fi
@@ -166,7 +169,7 @@ if should_build_target deps; then
     if [ $DO_CLEAN == true ] ; then
       run make clean
     fi
-		run make
+		run make $MAKEJ
 		do_install $tool
 		run popd ">/dev/null"
 	done
@@ -181,7 +184,7 @@ if should_build_target otawa; then
     if [ $DO_CLEAN == true ] ; then
       run make clean
     fi
-		run make
+		run make $MAKEJ
 		do_install otawa
 	run popd ">/dev/null"
 fi
@@ -192,7 +195,7 @@ if should_build_target patmos; then
   if [ $DO_CLEAN == true ] ; then
     run make clean
   fi
-	run make WITH_DYNLIB=1 GLISS_PREFIX=$ROOT_DIR/gliss2
+	run make $MAKEJ WITH_DYNLIB=1 GLISS_PREFIX=$ROOT_DIR/gliss2
 	run popd ">/dev/null"
 
 	# patmos modules
@@ -205,7 +208,7 @@ if should_build_target patmos; then
 		run mkdir -p $DIR
 		run pushd "$DIR" ">/dev/null"
 		run cmake --no-warn-unused-cli -DOTAWA_CONFIG=$INSTALL_DIR/bin/otawa-config -DGLISS_PATH=$ROOT_DIR/gliss2 $PATMOS_SOURCE_PATH/$module
-		run make
+		run make $MAKEJ
 		run make install
 		run popd ">/dev/null"
 	done
