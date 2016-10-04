@@ -24,6 +24,7 @@
 #include <elm/string.h>
 #include <elm/system/Path.h>
 #include <elm/genstruct/HashTable.h>
+#include <elm/genstruct/Vector.h>
 #include <elm/string.h>
 #include <otawa/base.h>
 #include <otawa/proc/CFGProcessor.h>
@@ -47,13 +48,16 @@ class NormNode;
 class ConstraintLoader: public CFGProcessor {
 	friend int ::ipet_parse(ConstraintLoader *);
 	friend void ::ipet_error(ConstraintLoader *, const char *);
+
+	typedef elm::genstruct::Vector<BasicBlock *> bbset_t;
 	
 	WorkSpace *fw;
 	ilp::System *system;
-	elm::genstruct::HashTable<Address, BasicBlock *> bbs;
+	elm::genstruct::HashTable<Address, bbset_t *> bbsets;
 	elm::genstruct::HashTable<String, ilp::Var *> vars;
 	elm::String path;
 
+	bbset_t *getBBs(address_t addr);
 	BasicBlock *getBB(address_t addr);
 	bool newBBVar(elm::CString name, address_t addr);
 	bool newEdgeVar(elm::CString name, address_t src, address_t dst);

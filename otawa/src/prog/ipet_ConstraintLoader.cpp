@@ -126,25 +126,53 @@ ConstraintLoader::ConstraintLoader(AbstractRegistration& r): CFGProcessor(r) {
 
 
 /**
+ * Find the set of BBs matching the given address.
+ * @param addr	Address of BB to find.
+ * @return		Vector of found BBs (possibly empty).
+ */
+ConstraintLoader::bbset_t *ConstraintLoader::getBBs(address_t addr) {
+	bbset_t *bbs = bbsets.get(addr, 0);
+	if(!bbs) {
+		bbs = new bbset_t();
+		for (CFGCollection::Iterator icfg(INVOLVED_CFGS(fw)); icfg; icfg++) {
+			for (CFG::BBIterator ibb(icfg); ibb; ibb++)
+				if(!ibb->isEnd()) {
+					if(ibb->address() <= addr && addr < ibb->topAddress())
+						bbs->add(ibb);
+				}
+		}
+		if(!bbs->length()) {
+			log << "ERROR: cannot find basic block at " << addr << ".\n";
+			return 0;
+		}
+		bbsets.put(addr, bbs);
+	}
+	return bbs;
+}
+
+/**
  * Find the BB matching the given address.
  * @param addr	Address of BB to find.
  * @return		Found BB or null.
  */
 BasicBlock *ConstraintLoader::getBB(address_t addr) {
-	BasicBlock *bb = bbs.get(addr, 0);
-	if(!bb) {
-		for (CFGCollection::Iterator icfg(INVOLVED_CFGS(fw)); icfg; icfg++) {
-			for (CFG::BBIterator ibb(icfg); ibb; ibb++)
-				if(!ibb->isEnd()) {
-					if(ibb->address() <= addr && addr < ibb->topAddress())
-						bb = ibb;
+	BasicBlock *bb = 0;
+	for (CFGCollection::Iterator icfg(INVOLVED_CFGS(fw)); icfg; icfg++) {
+		for (CFG::BBIterator ibb(icfg); ibb; ibb++)
+			if(!ibb->isEnd()) {
+				if(ibb->address() <= addr && addr < ibb->topAddress())
+				{
+					if(!bb) {
+						log << "ERROR: basic block is not unique " << addr << ".\n";
+						return 0;
+					}
+					bb = ibb;
 				}
-		}
-		if(!bb) {
-			log << "ERROR: cannot find basic block at " << addr << ".\n";
-			return 0;
-		}
-		bbs.put(addr, bb);
+			}
+	}
+	if(!bb) {
+		log << "ERROR: cannot find basic block at " << addr << ".\n";
+		return 0;
 	}
 	return bb;
 }
@@ -154,10 +182,22 @@ BasicBlock *ConstraintLoader::getBB(address_t addr) {
  * For internal use only.
  */
 bool ConstraintLoader::newBBVar(CString name, address_t addr) {
-	BasicBlock *bb = getBB(addr);
-	if(!bb)
+	bbset_t *bbs = getBBs(addr);
+	if(!bbs)
 		return false;
-	ilp::Var *var = ipet::VAR(bb);
+	ilp::Var *var = 0;
+	if (bbs->length() == 1)
+		var = ipet::VAR(bbs->first());
+	else
+	{
+		var = system->newVar(name);
+		ilp::Constraint *cons = system->newConstraint(ilp::Constraint::EQ);
+		cons->add(-1, var);
+		for(bbset_t::Iterator i(*bbs); i; i++)
+		{
+			cons->add(1, ipet::VAR(i));
+		}
+	}
 	if(!var)
 		log << "ERROR: variable " << name << " of basic block at " << addr
 			<< " is not defined.\n";
