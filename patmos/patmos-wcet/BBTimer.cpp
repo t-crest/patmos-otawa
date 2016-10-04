@@ -211,7 +211,8 @@ protected:
 		
 		// compute the graph
 		ot::time cost = graph.analyze();
-		outputGraph(&graph, source->number(), target->number(), 0, "");
+		if (_do_output_graphs)
+      outputGraph(&graph, source->number(), target->number(), 0, "");
 		return cost;
 	}
 };

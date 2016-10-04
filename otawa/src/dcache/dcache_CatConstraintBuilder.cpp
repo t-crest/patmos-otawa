@@ -237,34 +237,34 @@ void CatConstraintBuilder::processWorkSpace(otawa::WorkSpace *ws) {
 			for(int j = 0; j < ab.fst; j++) {
 				BlockAccess& b = ab.snd[j];
 
-                // Create x_miss variable
-                ilp::Var *miss;
-                if(!_explicit)
-                        miss = system->newVar();
-                else
-                        miss = system->newVar(_ << "xm_data_bb" << bb->number() << "_i" << b.instruction()->address() << "_" << j);
-                MISS_VAR(b) = miss;
+				// Create x_miss variable
+				ilp::Var *miss;
+				if(!_explicit)
+					miss = system->newVar();
+				else
+					miss = system->newVar(_ << "xm_data_bb" << bb->number() << "_i" << b.instruction()->address() << "_" << j);
+				MISS_VAR(b) = miss;
 
-                // Add the constraint depending on the block access category
-                switch(dcache::CATEGORY(b)) {
-                	case cache::ALWAYS_HIT: { // Add constraint: xmiss = 0
-	                		ilp::Constraint *cons2 = system->newConstraint(ilp::Constraint::EQ,0);
-    	            		cons2->addLeft(1, miss);
+				// Add the constraint depending on the block access category
+				switch(dcache::CATEGORY(b)) {
+					case cache::ALWAYS_HIT: { // Add constraint: xmiss = 0
+						ilp::Constraint *cons2 = system->newConstraint(ilp::Constraint::EQ,0);
+						cons2->addLeft(1, miss);
 						}
-                		break;
+					break;
 					case cache::FIRST_HIT:
 					case cache::NOT_CLASSIFIED: { // Add constraint: xmiss <= x
 							ilp::Constraint *cons3 = system->newConstraint(ilp::Constraint::LE);
-    	            		cons3->addLeft(1, miss);
-        	        		cons3->addRight(1, ipet::VAR(bb));
+							cons3->addLeft(1, miss);
+							cons3->addRight(1, ipet::VAR(bb));
 						}
 					break;
-                	case cache::ALWAYS_MISS: { // Add constraint: xmiss = x
+					case cache::ALWAYS_MISS: { // Add constraint: xmiss = x
 							ilp::Constraint *cons3 = system->newConstraint(ilp::Constraint::EQ);
-    	            		cons3->addLeft(1, miss);
-        	        		cons3->addRight(1, ipet::VAR(bb));
+							cons3->addLeft(1, miss);
+							cons3->addRight(1, ipet::VAR(bb));
 						}
-                		break;
+					break;
 					case cache::FIRST_MISS: {
 							BasicBlock *header = dcache::CATEGORY_HEADER(b);
 							ASSERT(header);
@@ -281,13 +281,12 @@ void CatConstraintBuilder::processWorkSpace(otawa::WorkSpace *ws) {
 							cons1->addRight(1, ipet::VAR(bb));
 							cons1->addLeft(1, miss);
 						}
-						break;
+					break;
 
-                	default:
-                		ASSERT(false);
-				break;
-                }
-
+					default:
+						ASSERT(false);
+					break;
+				}
 			}
 		}
 	}

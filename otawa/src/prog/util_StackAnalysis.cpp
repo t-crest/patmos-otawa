@@ -46,7 +46,6 @@ using namespace otawa::util;
 #define TRACED(t)	//t
 
 namespace otawa {
-
 /**
  * This identifier is a configuration for the @ref StackAnalysis processor.
  * It allows to provide initial values for the registers involved in the analysis.

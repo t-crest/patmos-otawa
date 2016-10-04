@@ -160,14 +160,14 @@ extend ALUp_op
 	opcode = opc
 
 macro GET_REG(d, r) = \
-        if r.is_zero then \
+	if r.is_zero then \
 	  SETI(d, 0); \
 	else \
 	  SET(d, "_R"(r.value)); \
 	endif
 
 macro GET_PRED(d, p) = \
-        if p.negated then \
+	if p.negated then \
 	  if p.always_false then \
 	    SETI(d, 0); \
 	  else \
