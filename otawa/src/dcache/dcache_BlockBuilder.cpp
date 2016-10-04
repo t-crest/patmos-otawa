@@ -28,7 +28,10 @@
 #include <otawa/dcache/BlockBuilder.h>
 #include <otawa/stack/AccessedAddress.h>
 
-namespace otawa { namespace dcache {
+namespace otawa {
+  extern Identifier<Pair<Address, Address> > ACCESS_RANGE;
+
+  namespace dcache {
 
 /**
  * @class BlockBuilder
@@ -128,6 +131,12 @@ void BlockBuilder::processBB (WorkSpace *ws, CFG *cfg, BasicBlock *bb) {
 			ASSERT(false);
 			break;
 		}
+
+		if (ACCESS_RANGE.exists(aa->instruction())) {
+			addr = (*ACCESS_RANGE(aa->instruction())).fst;
+			last = (*ACCESS_RANGE(aa->instruction())).snd;
+		}
+
 
 		// type of action
 		BlockAccess::action_t action = aa->isStore() ? BlockAccess::STORE : BlockAccess::LOAD;
