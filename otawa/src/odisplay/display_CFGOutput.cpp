@@ -26,6 +26,8 @@
 #include <otawa/display/CFGDrawer.h>
 #include <otawa/display/GenDrawer.h>
 #include <otawa/display/CFGAdapter.h>
+#include <otawa/cache/LBlockSet.h>
+#include <otawa/dcache/features.h>
 
 namespace otawa { namespace display {
 
@@ -246,6 +248,26 @@ void CFGOutput::genBBInfo(CFG *cfg, BasicBlock *bb, Output& out) {
 		out << prop->id()->name() << " = ";
 		prop->id()->print(out, prop);
 		out << io::endl;
+	}
+
+	// traverse blocks accesses
+	Pair<int, dcache::BlockAccess *> ab = dcache::DATA_BLOCKS(bb);
+	if (ab.fst) {
+		out << "---\nData Cache:\n";
+		for(int j = 0; j < ab.fst; j++) {
+			dcache::BlockAccess& b = ab.snd[j];
+			b.print(out);
+			out << " | " << dcache::CATEGORY(b) << io::endl;
+		}
+	}
+
+	genstruct::AllocatedTable<LBlock *> *lbs = BB_LBLOCKS(bb);
+	if (lbs->count()) {
+		out << "---\nInstruction Cache:\n";
+		for(int i = 0; i < lbs->count(); i++) {
+			LBlock *lb = lbs->get(i);
+			out << lb->address() << "(" << lb->instruction() << "): fetch " << lb->address() << " (" << lb->index() << " in " << lb->cacheBlock() << ")" << " | " << otawa::CATEGORY(lb) << io::endl;
+		}
 	}
 }
 
