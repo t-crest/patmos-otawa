@@ -23,6 +23,10 @@
 #include <elm/system/System.h>
 #include <otawa/ipet.h>
 #include <otawa/util/BBRatioDisplayer.h>
+#include <otawa/hard/CacheConfiguration.h>
+#include <otawa/dcache/features.h>
+
+#include <map>
 
 namespace otawa {
 
@@ -108,12 +112,15 @@ void BBRatioDisplayer::setup(WorkSpace *ws) {
 	// prepare the work
 	wcet = ipet::WCET(ws);
 	system = ipet::SYSTEM(ws);
-	out << "ADDRESS\t\tNUM\tSIZE\tTIME\tCOUNT\tRATIO\t\tFUNCTION";
+	out << "ADDRESS\tNUM\tSIZE\tTIME\tCOUNT\tCACHE\tDCACHE\tTOTAL\tRATIO\tFUNCTION";
 	if(line)
 		out << "\tLINE";
 	out << io::endl;
 }
 
+static std::map<address_t, unsigned int> addrTimes;
+static std::map<address_t, unsigned int> addrCache;
+static std::map<address_t, unsigned int> addrDCache;
 
 /**
  */
@@ -123,7 +130,17 @@ void BBRatioDisplayer::processCFG(WorkSpace *fw, CFG *cfg) {
 		<< SUM(cfg) << '\t'
 		<< (int)system->valueOf(ipet::VAR(cfg->entry())) << '\t'
 		<< (float)SUM(cfg) * 100 / wcet << "%\t\t"
-		<< cfg->label() << io::endl; 		
+		<< cfg->label() << io::endl;
+	out << "\n-----------\n";
+	out << "ADDRESS\tCACHE\tDCACHE\tTIME\tRATIO\tFUNCTION";
+	unsigned int accu_cache = 0, accu_dcache = 0;
+	for(std::map<address_t, unsigned int>::const_iterator i(addrTimes.begin()), ie(addrTimes.end()); i != ie; i++)
+	{
+		out << i->first << "\t" << addrCache[i->first] << "\t" << addrDCache[i->first] << "\t" << i->second << "\t" << (float)i->second * 100 / wcet << "%\t" << cfg->label() << "\n";
+		accu_cache += addrCache[i->first];
+		accu_dcache += addrDCache[i->first];
+	}
+	out << "Total\t" << accu_cache << "\t" << accu_dcache << "\t" << wcet << "\t" << "\n";
 }
 
 
@@ -132,15 +149,45 @@ void BBRatioDisplayer::processCFG(WorkSpace *fw, CFG *cfg) {
 void BBRatioDisplayer::processBB(WorkSpace *fw, CFG *cfg, BasicBlock *bb) {
 	if(bb->isEnd())
 		return;
+
+	// accumulate instruction cache miss costs.
+	const hard::Cache *inst_cache = hard::CACHE_CONFIGURATION(fw)->instCache();
+	int cache_penalty = inst_cache->missPenalty();
+	int cache_total = 0;
+	genstruct::AllocatedTable<LBlock *> *lbs = BB_LBLOCKS(bb);
+	for(int i = 0; i < lbs->count(); i++)
+	{
+		LBlock *lb = lbs->get(i);
+		ilp::Var *miss_var = MISS_VAR(lb);
+		cache_total += (int)system->valueOf(miss_var) * cache_penalty;
+	}
+
+	// accumulate data cache miss costs.
+	const hard::Cache *data_cache = hard::CACHE_CONFIGURATION(fw)->dataCache();
+	int dcache_penalty = data_cache->missPenalty();
+	int dcache_total = 0;
+	Pair<int, dcache::BlockAccess *> ab = dcache::DATA_BLOCKS(bb);
+	for(int j = 0; j < ab.fst; j++) {
+		dcache::BlockAccess& b = ab.snd[j];
+		ilp::Var *miss_var = dcache::MISS_VAR(b);
+		dcache_total += (int)system->valueOf(miss_var) * dcache_penalty;
+	}
+
 	int count = (int)system->valueOf(ipet::VAR(bb)),
 		time = ipet::TIME(bb),
-		total = time * count;
+		total = time * count + cache_total + dcache_total;
 	SUM(cfg) = SUM(cfg) + total;
+	addrTimes[bb->address()] += total;
+	addrCache[bb->address()] += cache_total;
+	addrDCache[bb->address()] += dcache_total;
 	out << bb->address() << '\t'
 		<< bb->number() << '\t'
 		<< bb->size() << '\t'
 		<< time << '\t'
 		<< count << '\t'
+		<< cache_total << '\t'
+		<< dcache_total << '\t'
+		<< total << '\t'
 		<< (float)total * 100 / wcet << "%\t"
 		<< cfg->label();
 	
