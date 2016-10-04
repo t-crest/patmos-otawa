@@ -36,7 +36,6 @@ add_subdirectory(ets)
 add_subdirectory(ocpp)
 add_subdirectory(odec)
 add_subdirectory(odisplay)
-add_subdirectory(dcache)
 
 
 # loader plugins

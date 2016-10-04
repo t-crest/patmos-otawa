@@ -178,6 +178,16 @@ set(libotawa_SOURCES
 	"clp_analysis.cpp"
 	"clp_symbolic_expr.cpp"
 	"ai.cpp"
+	"../dcache/dcache.cpp"
+	"../dcache/dcache_ACSBuilder.cpp"
+	"../dcache/dcache_ACSMayBuilder.cpp"
+	"../dcache/dcache_BlockBuilder.cpp"
+	"../dcache/dcache_CatBuilder.cpp"
+	"../dcache/dcache_CatConstraintBuilder.cpp"
+	"../dcache/dcache_CLPBlockBuilder.cpp"
+	"../dcache/dcache_WCETFunctionBuilder.cpp"
+	"../dcache/Dirty.cpp"
+	"../dcache/Purge.cpp"
 	)
 
 include_directories(".")
