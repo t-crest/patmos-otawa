@@ -216,7 +216,7 @@ void CAT2Builder::processCFG(otawa::WorkSpace *fw, otawa::CFG *cfg) {
 			log << "\tAH = " << ah_cnt << " (" << (ah_cnt * 100 / total_cnt) << "%)\n"
 				<< "\tAM = " << am_cnt << " (" << (am_cnt * 100 / total_cnt) << "%)\n"
 				<< "\tPERS = " << pers_cnt << " (" << (pers_cnt * 100 / total_cnt) << "%)\n"
-				<< "\tAM = " << nc_cnt << " (" << (nc_cnt * 100 / total_cnt) << "%)\n";
+				<< "\tNC = " << nc_cnt << " (" << (nc_cnt * 100 / total_cnt) << "%)\n";
 	}
 }
 
