@@ -268,7 +268,7 @@ void CFGOutput::genBBInfo(CFG *cfg, BasicBlock *bb, Output& out) {
 		out << "---\nInstruction Cache:\n";
 		for(int i = 0; i < lbs->count(); i++) {
 			LBlock *lb = lbs->get(i);
-			out << inst_cache->round(lb->address()) << " (" << lb->instruction() << "): fetch " << lb->address() << " (" << lb->index() << " in " << lb->cacheBlock() << ")" << " | " << otawa::CATEGORY(lb) << io::endl;
+			out << lb->address() << " (" << lb->instruction() << "): fetch " << inst_cache->round(lb->address()) << " (" << lb->index() << " in " << lb->cacheBlock() << ")" << " | " << otawa::CATEGORY(lb) << io::endl;
 		}
 	}
 }
