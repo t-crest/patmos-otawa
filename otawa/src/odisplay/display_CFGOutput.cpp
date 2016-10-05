@@ -264,7 +264,7 @@ void CFGOutput::genBBInfo(CFG *cfg, BasicBlock *bb, Output& out) {
 	}
 
 	genstruct::AllocatedTable<LBlock *> *lbs = BB_LBLOCKS(bb);
-	if (lbs->count()) {
+	if (lbs && lbs->count()) {
 		out << "---\nInstruction Cache:\n";
 		for(int i = 0; i < lbs->count(); i++) {
 			LBlock *lb = lbs->get(i);

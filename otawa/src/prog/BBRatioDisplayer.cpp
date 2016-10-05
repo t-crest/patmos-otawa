@@ -151,15 +151,18 @@ void BBRatioDisplayer::processBB(WorkSpace *fw, CFG *cfg, BasicBlock *bb) {
 		return;
 
 	// accumulate instruction cache miss costs.
-	const hard::Cache *inst_cache = hard::CACHE_CONFIGURATION(fw)->instCache();
-	int cache_penalty = inst_cache->missPenalty();
 	int cache_total = 0;
 	genstruct::AllocatedTable<LBlock *> *lbs = BB_LBLOCKS(bb);
-	for(int i = 0; i < lbs->count(); i++)
+	if (lbs)
 	{
-		LBlock *lb = lbs->get(i);
-		ilp::Var *miss_var = MISS_VAR(lb);
-		cache_total += (int)system->valueOf(miss_var) * cache_penalty;
+		const hard::Cache *inst_cache = hard::CACHE_CONFIGURATION(fw)->instCache();
+		int cache_penalty = inst_cache->missPenalty();
+		for(int i = 0; i < lbs->count(); i++)
+		{
+			LBlock *lb = lbs->get(i);
+			ilp::Var *miss_var = MISS_VAR(lb);
+			cache_total += (int)system->valueOf(miss_var) * cache_penalty;
+		}
 	}
 
 	// accumulate data cache miss costs.
