@@ -24,6 +24,7 @@
 
 #include <otawa/proc/CFGProcessor.h>
 #include <otawa/display/AbstractDrawer.h>
+#include <otawa/hard/CacheConfiguration.h>
 
 namespace otawa {
 
@@ -57,6 +58,7 @@ protected:
 private:
 	display::kind_t kind;
 	string path;
+	const hard::Cache *inst_cache;
 };
 
 } }	// otawa::display

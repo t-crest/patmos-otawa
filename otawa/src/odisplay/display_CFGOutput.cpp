@@ -135,6 +135,8 @@ void CFGOutput::processCFG(WorkSpace *fw, CFG *cfg) {
 	ASSERT(fw);
 	ASSERT(cfg);
 
+	inst_cache = hard::CACHE_CONFIGURATION(fw)->instCache();
+
 	// Compute the name
 	string label = cfg->label();
 	if(label == "")
@@ -266,7 +268,7 @@ void CFGOutput::genBBInfo(CFG *cfg, BasicBlock *bb, Output& out) {
 		out << "---\nInstruction Cache:\n";
 		for(int i = 0; i < lbs->count(); i++) {
 			LBlock *lb = lbs->get(i);
-			out << lb->address() << "(" << lb->instruction() << "): fetch " << lb->address() << " (" << lb->index() << " in " << lb->cacheBlock() << ")" << " | " << otawa::CATEGORY(lb) << io::endl;
+			out << inst_cache->round(lb->address()) << " (" << lb->instruction() << "): fetch " << lb->address() << " (" << lb->index() << " in " << lb->cacheBlock() << ")" << " | " << otawa::CATEGORY(lb) << io::endl;
 		}
 	}
 }
