@@ -132,7 +132,7 @@ void BBRatioDisplayer::processCFG(WorkSpace *fw, CFG *cfg) {
 		<< (float)SUM(cfg) * 100 / wcet << "%\t\t"
 		<< cfg->label() << io::endl;
 	out << "\n-----------\n";
-	out << "ADDRESS\tCACHE\tDCACHE\tTIME\tRATIO\tFUNCTION";
+	out << "ADDRESS\tCACHE\tDCACHE\tTIME\tRATIO\tFUNCTION\n";
 	unsigned int accu_cache = 0, accu_dcache = 0;
 	for(std::map<address_t, unsigned int>::const_iterator i(addrTimes.begin()), ie(addrTimes.end()); i != ie; i++)
 	{
